@@ -35,7 +35,6 @@ docker run --rm caddy:2-alpine caddy hash-password --plaintext 'password'
 # Set users and passwords for basic auth
 # Set the host
 # Set L1 rpc url
-# Set L1 Authorization header (optional) (bearer token or basic auth)
 # Set L2 chain id (42161: Arbitrum One, 42170: Arbitrum Nova)
 nano .env
 ```
