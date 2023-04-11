@@ -1,0 +1,68 @@
+version: "3.8"
+
+networks:
+  docknode-arb:
+    driver: bridge
+
+volumes:
+  fullnode_data: {}
+  caddy_data: {}
+  caddy_config: {}
+
+services:
+  fullnode:
+    image: "offchainlabs/nitro-node:v2.0.13-174496c"
+    user: 1000:1000
+    restart: unless-stopped
+    expose:
+      - 8547
+      - 9642
+    volumes:
+      - 'fullnode_data:/home/user/.arbitrum'	
+    command: >
+      --init.url=https://snapshot.arbitrum.io/mainnet/nitro.tar
+      --l1.url=${L1_URL:?err}
+      --l2.chain-id=${L2_CHAIN_ID:?err}
+      --http.api=net,web3,eth,debug
+      --http.corsdomain=*
+      --http.addr=0.0.0.0
+      --http.vhosts=*
+    networks:
+      - docknode-arb
+    depends_on:
+      - caddy
+
+  nodeexporter:
+    image: prom/node-exporter:v1.5.0
+    restart: unless-stopped
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    expose:
+      - 9100
+    networks:
+      - docknode-arb
+
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+      - "9100:9100"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      - METRICS_USERS=${METRICS_USERS:?err}
+      - RPC_USERS=${RPC_USERS:?err}
+      - HOST=${HOST:?err}
+      - L1_URL=${L1_URL:?err}
+    networks:
+      - docknode-arb
