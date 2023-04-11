@@ -18,7 +18,7 @@ services:
       - 8547
       - 9642
     volumes:
-      - 'fullnode_data:/home/user/.arbitrum'	
+      - 'fullnode_data:/home/user/.arbitrum'
     command: >
       --init.url=https://snapshot.arbitrum.io/mainnet/nitro.tar
       --l1.url=${L1_URL:?err}
